@@ -29,7 +29,7 @@ Replace `{district name}` and `{id}` using the instructions above. Adjust the wi
 ```html
 <div id="covid-wrapper" style="width: 100%; height: 100%; overflow: scroll;">
 
-<iframe src="https://korylprince.github.io/school-covid-tracker-split/index.html?district={district name}&id={id}" style="border: none; width: 710px; height: 1375px;"></iframe>
+<iframe src="https://korylprince.github.io/school-covid-tracker-split/index.html?district={district name}&id={id}" style="border: none; width: 710px; height: 1625px;"></iframe>
 </div>
 <div>If you have issues viewing the tracker, <a href="https://korylprince.github.io/school-covid-tracker-split/index.html?district={district name}&id={id}">click here</a>.</div>
 ```
