@@ -204,6 +204,11 @@
                         tooltips: {
                             mode: "index",
                             intersect: false,
+                            callbacks: {
+                                title(items, data) {
+                                    return (items[0].xLabel || []).join(" ")
+                                },
+                            },
                         },
                         responsive: true,
                         scales: {
