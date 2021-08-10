@@ -45,6 +45,9 @@
             #chart {
                 margin-bottom: 30px;
             }
+            .hidden {
+                display: none;
+            }
             .grid {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
@@ -97,42 +100,42 @@
             <canvas id="chart"></canvas>
 
             <div class="grid">
-                <div class="total">
+                <div class="total hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/human-greeting.svg">
                     <div class="number" ref="Total Students"></div>
                     <div>Total Students</div>
                 </div>
-                <div class="total">
+                <div class="total hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/teach.svg">
                     <div class="number" ref="Total Staff"></div>
                     <div>Total Staff</div>
                 </div>
-                <div class="exposed">
+                <div class="exposed hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/face-mask-outline.svg">
                     <div class="number" ref="Exposed Students"></div>
                     <div>Current Exposed Students</div>
                 </div>
-                <div class="exposed">
+                <div class="exposed hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/face-mask-outline.svg">
                     <div class="number" ref="Exposed Staff"></div>
                     <div>Current Exposed Staff</div>
                 </div>
-                <div class="symptomatic">
+                <div class="symptomatic hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/thermometer-lines.svg">
                     <div class="number" ref="Symptomatic Students"></div>
                     <div>Current Symptomatic Students</div>
                 </div>
-                <div class="symptomatic">
+                <div class="symptomatic hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/thermometer-lines.svg">
                     <div class="number" ref="Symptomatic Staff"></div>
                     <div>Current Symptomatic Staff</div>
                 </div>
-                <div class="positive">
+                <div class="positive hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/virus-outline.svg">
                     <div class="number" ref="Positive Students"></div>
                     <div>Current Students with Positive Cases</div>
                 </div>
-                <div class="positive">
+                <div class="positive hidden">
                     <img src="https://cdn.jsdelivr.net/npm/@mdi/svg@5.5.55/svg/virus-outline.svg">
                     <div class="number" ref="Positive Staff"></div>
                     <div>Current Staff with Positive Cases</div>
@@ -142,6 +145,15 @@
         </div>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
         <script type="text/javascript">
+            const color_map = {
+                "Exposed Students": "#003595",
+                "Exposed Staff": "#838bfa",
+                "Symptomatic Students": "#ff9800",
+                "Symptomatic Staff": "#ffb74d",
+                "Positive Students": "#cf102d",
+                "Positive Staff": "#ff8983",
+            }
+
             function parse(csv) {
                 const data = []
                 const lines = csv.split("\n")
@@ -167,8 +179,22 @@
                 const chart_data = parse(await (await fetch(data_url)).text())
                 const agg_data = parse(await (await fetch(agg_url)).text())[0]
 
+                // build datasets
+                datasets = []
                 for (const entry of Object.entries(agg_data)) {
-                    document.querySelector(`[ref="${entry[0]}"]`).innerHTML = entry[1]
+                    const elem = document.querySelector(`[ref="${entry[0]}"]`)
+                    if (elem == null) {
+                        continue
+                    }
+                    elem.innerHTML = entry[1]
+                    elem.parentElement.classList.remove("hidden")
+                    if (entry[0] in color_map) {
+                        datasets.push({
+                            label: entry[0],
+                            data: chart_data.map(val => val[entry[0]]),
+                            backgroundColor: color_map[entry[0]],
+                        })
+                    }
                 }
 
                 // make chart have minimum height of 20
@@ -191,6 +217,7 @@
                 }
 
                 max_height = Math.ceil(Math.max(20, max_height) / 20) * 20;
+
 
                 const ctx = document.getElementById("chart").getContext("2d")
                 var chart = new Chart(ctx, {
@@ -228,38 +255,7 @@
                     },
                     data: {
                         labels: chart_data.map(val => val.Campus).map(val => val.split(" ")),
-                        datasets: [
-                            {
-                                label: "Exposed Students",
-                                data: chart_data.map(val => val["Exposed Students"]),
-                                backgroundColor: "#003595",
-                            },
-                            {
-                                label: "Exposed Staff",
-                                data: chart_data.map(val => val["Exposed Staff"]),
-                                backgroundColor: "#838bfa",
-                            },
-                            {
-                                label: "Symptomatic Students",
-                                data: chart_data.map(val => val["Symptomatic Students"]),
-                                backgroundColor: "#ff9800",
-                            },
-                            {
-                                label: "Symptomatic Staff",
-                                data: chart_data.map(val => val["Symptomatic Staff"]),
-                                backgroundColor: "#ffb74d",
-                            },
-                            {
-                                label: "Positive Students",
-                                data: chart_data.map(val => val["Positive Students"]),
-                                backgroundColor: "#cf102d",
-                            },
-                            {
-                                label: "Positive Staff",
-                                data: chart_data.map(val => val["Positive Staff"]),
-                                backgroundColor: "#ff8983",
-                            },
-                        ],
+                        datasets: datasets,
                     },
                 })
                 document.querySelector("#loader").remove()
